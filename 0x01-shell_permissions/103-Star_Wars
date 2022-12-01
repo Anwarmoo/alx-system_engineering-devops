@@ -1,2 +1,2 @@
 #!/bin/bash
-netcat towel.blinkenlights.nl 23
+telnettowel.blinkenlights.nl
