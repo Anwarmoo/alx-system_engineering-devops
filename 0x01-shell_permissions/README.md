@@ -13,3 +13,7 @@
 - 11-directories_permissions - A script that adds execute permission to all subdirectories of the current directory for the owner, the group owner and all other users. Regular files should not be changed.
 - 12-directory_permissions - A script that creates a directory called **my_dir** with permissions **751** in the working directory.
 - 13-change_group - A script that changes the group owner to **school** for the file **hello**  in lunux terminal
+- 100-change_owner_and_group - A script that changes the owner to vincent
+- 101-symbolic_link_permissions - A script that changes the owner and the group owner of _hello to vincent and staff respectively.
+- 102-if_only  - A script that changes the owner of the file
+- 103-Star_Wars - A script that will play the StarWars IV episode in the terminal.
