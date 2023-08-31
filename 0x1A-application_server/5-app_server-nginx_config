@@ -67,16 +67,21 @@ server {
                 proxy_pass http://127.0.0.1:5002/api;
         }
 
-        # Serve static content for AirBnB_clone_v4
-        location /static {
-                proxy_pass http://127.0.0.1:5003;
+        # Configure /2-hbnb route of AirBnB_clone_v4 as root location
+        location / {
+                proxy_pass http://127.0.0.1:5003/2-hbnb;
         }
 
-        location / {
+                # Serve static content for AirBnB_clone_v4
+        location /static {
+                alias /web_dynamic/static/;
+        }
+
+        #location / {
                 # First attempt to serve request as file, then
                 # as directory, then fall back to displaying a 404.
-                try_files $uri $uri/ =404;
-        }
+                #try_files $uri $uri/ =404;
+        #}
 
         location /hbnb_static/ {
                 alias /data/web_static/current/;
