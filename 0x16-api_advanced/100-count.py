@@ -1,36 +1,61 @@
 #!/usr/bin/python3
-"""Return a list for all hot post in a given subreddit in REDDIT's API,
-invalid subreddit should return an Empty list"""
-import requests
+""" Count it! """
+from requests import get
+
+REDDIT = "https://www.reddit.com/"
+HEADERS = {'user-agent': 'esw1229/0.0.1'}
 
 
-def count_words(subreddit, word_list, after=None, dic=None, item=0):
-    """Print a list of words with the respective times appears into a string"""
-    if item < 1:
-        dic = {i: 0 for i in word_list}
+def count_words(subreddit, word_list, after="", word_dic={}):
+    """
+    Returns a list containing the titles of all hot articles for a
+    given subreddit. If no results are found for the given subreddit,
+    the function should return None.
+    """
+    if not word_dic:
+        for word in word_list:
+            word_dic[word] = 0
 
-    URL = 'https://www.reddit.com/r/' + subreddit + '/hot.json'
-    header = {'user-agent': 'miguel/0.0.1'}
-    req = requests.get(URL, headers=header, allow_redirects=False,
-                       params={'after': str(after)})
+    if after is None:
+        word_list = [[key, value] for key, value in word_dic.items()]
+        word_list = sorted(word_list, key=lambda x: (-x[1], x[0]))
+        for w in word_list:
+            if w[1]:
+                print("{}: {}".format(w[0].lower(), w[1]))
+        return None
 
-    if req.status_code == 200:
-        data = req.json()
-        items = data['data']['children']
-        titles = list(map(lambda x: x.get('data').get('title'), items))
-        after = data['data']['after']
-        for title in titles:
-            title = title.split(' ')
-            for sb in title:
-                for word in word_list:
-                    if sb.lower() == word.lower():
-                        dic[word] += 1
-        if after:
-            count_words(subreddit, word_list, after, dic, item + 1)
-        else:
-            dic = sorted(dic.items(), key=lambda x: x[1], reverse=True)
-            for item in dic:
-                if (item[1] > 0):
-                    print('{}: {}'.format(item[0], item[1]))
-    else:
-        print('')
+    url = REDDIT + "r/{}/hot/.json".format(subreddit)
+
+    params = {
+        'limit': 100,
+        'after': after
+    }
+
+    r = get(url, headers=HEADERS, params=params, allow_redirects=False)
+
+    if r.status_code != 200:
+        return None
+
+    try:
+        js = r.json()
+
+    except ValueError:
+        return None
+
+    try:
+
+        data = js.get("data")
+        after = data.get("after")
+        children = data.get("children")
+        for child in children:
+            post = child.get("data")
+            title = post.get("title")
+            lower = [s.lower() for s in title.split(' ')]
+
+            for w in word_list:
+                word_dic[w] += lower.count(w.lower())
+
+    except:
+        return None
+
+    count_words(subreddit, word_list, after, word_dic)
