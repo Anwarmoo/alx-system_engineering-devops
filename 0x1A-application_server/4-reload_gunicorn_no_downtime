@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 # Reload Gunicorn in a gracefully
 
-pgrep gunicorn | xargs kill -HUP
+sudo pgrep gunicorn | xargs kill -HUP
