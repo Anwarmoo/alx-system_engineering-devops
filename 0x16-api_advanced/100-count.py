@@ -1,55 +1,41 @@
 #!/usr/bin/python3
-"""Function to count words in all hot posts of a given Reddit subreddit."""
+""" request the top ten hot posts """
 import requests
 
 
-def count_words(subreddit, word_list, instances={}, after="", count=0):
-    """Prints counts of given words found in hot posts of a given subreddit.
-
+def count_words(subreddit, word_list, afters="", before="", count={}):
+    """ function to get top hot posts
     Args:
-        subreddit (str): The subreddit to search.
-        word_list (list): The list of words to search for in post titles.
-        instances (obj): Key/value pairs of words/counts.
-        after (str): The parameter for the next page of the API results.
-        count (int): The parameter of results matched thus far.
-    """
-    url = "https://www.reddit.com/r/{}/hot/.json".format(subreddit)
-    headers = {
-        "User-Agent": "linux:0x16.api.advanced:v1.0.0 (by /u/bdov_)"
-    }
-    params = {
-        "after": after,
-        "count": count,
-        "limit": 100
-    }
-    response = requests.get(url, headers=headers, params=params,
-                            allow_redirects=False)
-    try:
-        results = response.json()
-        if response.status_code == 404:
-            raise Exception
-    except Exception:
-        print("")
-        return
-
-    results = results.get("data")
-    after = results.get("after")
-    count += results.get("dist")
-    for c in results.get("children"):
-        title = c.get("data").get("title").lower().split()
-        for word in word_list:
-            if word.lower() in title:
-                times = len([t for t in title if t == word.lower()])
-                if instances.get(word) is None:
-                    instances[word] = times
-                else:
-                    instances[word] += times
-
-    if after is None:
-        if len(instances) == 0:
-            print("")
-            return
-        instances = sorted(instances.items(), key=lambda kv: (-kv[1], kv[0]))
-        [print("{}: {}".format(k, v)) for k, v in instances]
+    subreddit (string): subreddit queried
+"""
+    web = 'https://www.reddit.com/r/{}/hot.json?after={}'.format(
+        subreddit, afters)
+    headers = {'User-Agent': 'MyAPI/0.1'}
+    main = requests.get(web,
+                        headers=headers, allow_redirects=False)
+    before = main.json()['data']['before']
+    if (main.json().get('error') == 404):
+        return None
+    if (before is None and afters is None):
+        for C in word_list:
+            for post in main.json()['data']['children']:
+                hold = [x.lower() for x in post['data']['title'].split()]
+                if C in hold:
+                    if count.get(C) is None:
+                        count[C] = 0
+                    count[C] += hold.count(C.lower())
+        for words, numbers in count.items():
+            print("{}: {}".format(words, numbers))
+    elif (afters is not None):
+        afters = main.json()['data']['after']
+        for C in word_list:
+            for post in main.json()['data']['children']:
+                hold = [x.lower() for x in post['data']['title'].split()]
+                if C in hold:
+                    if count.get(C) is None:
+                        count[C] = 0
+                    count[C] += hold.count(C.lower())
+        count_words(subreddit, word_list, afters, count)
     else:
-        count_words(subreddit, word_list, instances, after, count)
+        for words, numbers in count.items():
+            print("{}: {}".format(words, numbers))
