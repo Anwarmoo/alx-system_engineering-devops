@@ -1,41 +1,47 @@
 #!/usr/bin/python3
-""" request the top ten hot posts """
+"""Queries the Reddit API recursively."""
+
 import requests
+import json
 
+def count_words(subreddit, word_list, after='', word_dict={}):
+    """Queries the Reddit API, parses the title of all hot articles,
+    and prints a sorted count of given keywords (case-insensitive,
+    delimited by spaces. Javascript should count as javascript,
+    but java should not).
+    """
+    if not word_dict:
+        for word in word_list:
+            if word.lower() not in word_dict:
+                word_dict[word.lower()] = 0
 
-def count_words(subreddit, word_list, afters="", before="", count={}):
-    """ function to get top hot posts
-    Args:
-    subreddit (string): subreddit queried
-"""
-    web = 'https://www.reddit.com/r/{}/hot.json?after={}'.format(
-        subreddit, afters)
-    headers = {'User-Agent': 'MyAPI/0.1'}
-    main = requests.get(web,
-                        headers=headers, allow_redirects=False)
-    before = main.json()['data']['before']
-    if (main.json().get('error') == 404):
+    if after is None:
+        wordict = sorted(word_dict.items(), key=lambda x: (-x[1], x[0]))
+        for word in wordict:
+            if word[1]:
+                print('{}: {}'.format(word[0], word[1]))
         return None
-    if (before is None and afters is None):
-        for C in word_list:
-            for post in main.json()['data']['children']:
-                hold = [x.lower() for x in post['data']['title'].split()]
-                if C in hold:
-                    if count.get(C) is None:
-                        count[C] = 0
-                    count[C] += hold.count(C.lower())
-        for words, numbers in count.items():
-            print("{}: {}".format(words, numbers))
-    elif (afters is not None):
-        afters = main.json()['data']['after']
-        for C in word_list:
-            for post in main.json()['data']['children']:
-                hold = [x.lower() for x in post['data']['title'].split()]
-                if C in hold:
-                    if count.get(C) is None:
-                        count[C] = 0
-                    count[C] += hold.count(C.lower())
-        count_words(subreddit, word_list, afters, count)
-    else:
-        for words, numbers in count.items():
-            print("{}: {}".format(words, numbers))
+
+    url = 'https://www.reddit.com/r/{}/hot/.json'.format(subreddit)
+    header = {'user-agent': 'redquery'}
+    parameters = {'limit': 100, 'after': after}
+    response = requests.get(url, headers=header, params=parameters,
+                            allow_redirects=False)
+
+    if response.status_code != 200:
+        return None
+
+    try:
+        hot = response.json()['data']['children']
+        aft = response.json()['data']['after']
+        for post in hot:
+            title = post['data']['title']
+            lower = [word.lower() for word in title.split(' ')]
+
+            for word in word_dict.keys():
+                word_dict[word] += lower.count(word)
+
+    except Exception:
+        return None
+
+    count_words(subreddit, word_list, after, word_dict)
