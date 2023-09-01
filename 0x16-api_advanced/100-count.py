@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 """Queries the Reddit API recursively."""
 
-import requests
 import json
+import requests
+
 
 def count_words(subreddit, word_list, after='', word_dict={}):
     """Queries the Reddit API, parses the title of all hot articles,
